@@ -1,33 +1,33 @@
-const Board = require("../models/board");
+const Catalogue = require("../models/catalogue");
 const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
 const moment = require("moment");
 
-const saveTask = async (req, res) => {
+const saveProduct = async (req, res) => {
   if (!req.body.name || !req.body.description)
     return res.status(400).send("Incomplete data");
 
-  let board = new Board({
-    userId: req.user._id,
+  let catalogue = new Catalogue({
     name: req.body.name,
     description: req.body.description,
-    taskStatus: "to-do",
+    productStatus: "libre",
   });
 
-  let result = await board.save();
-  if (!result) return res.status(400).send("Error registering task");
+  let result = await catalogue.save();
+  if (!result) return res.status(400).send("Error registering product");
   return res.status(200).send({ result });
 };
 
-const listTask = async (req, res) => {
-  let board = await Board.find({ userId: req.user._id });
-  if (!board || board.length === 0)
-    return res.status(400).send("You have no assigned tasks");
-  return res.status(200).send({ board });
+const listProduct = async (req, res) => {
+  let products = await Catalogue.find({ name: new RegExp(req.params["name"], "i") });
+
+  if (!products || products.length === 0)
+    return res.status(400).send("No search results");
+  return res.status(200).send({ students: products });
 };
 
-const saveTaskImg = async (req, res) => {
+const saveProductImg = async (req, res) => {
   if (!req.body.name || !req.body.description)
     return res.status(400).send("Incomplete data");
   console.log(req.files);
@@ -43,42 +43,42 @@ const saveTaskImg = async (req, res) => {
       url + "uploads/" + moment().unix() + path.extname(req.files.image.path);
   }
 
-  let board = new Board({
+  let catalogue = new Catalogue({
     userId: req.user._id,
     name: req.body.name,
     description: req.body.description,
-    taskStatus: "to-do",
+    productStatus: "libre",
     imageUrl: imageUrl,
   });
 
-  let result = await board.save();
-  if (!result) return res.status(400).send("Error registering task");
+  let result = await catalogue.save();
+  if (!result) return res.status(400).send("Error registering product");
   return res.status(200).send({ result });
 };
 
-const updateTask = async (req, res) => {
+const updateProduct = async (req, res) => {
   let validId = mongoose.Types.ObjectId.isValid(req.body._id);
   if (!validId) return res.status(400).send("Invalid id");
 
-  if (!req.body._id || !req.body.taskStatus)
+  if (!req.body._id || !req.body.productStatus)
     return res.status(400).send("Incomplete data");
 
-  let board = await Board.findByIdAndUpdate(req.body._id, {
+  let board = await Catalogue.findByIdAndUpdate(req.body._id, {
     userId: req.user._id,
-    taskStatus: req.body.taskStatus,
+    productStatus: req.body.productStatus,
   });
 
-  if (!board) return res.status(400).send("Task not found");
+  if (!catalogue) return res.status(400).send("product not found");
   return res.status(200).send({ board });
 };
 
-const deleteTask = async (req, res) => {
+const deleteProduct = async (req, res) => {
   let validId = mongoose.Types.ObjectId.isValid(req.params._id);
   if (!validId) return res.status(400).send("Invalid id");
 
-  let board = await Board.findByIdAndDelete(req.params._id);
-  if (!board) return res.status(400).send("Task not found");
-  return res.status(200).send("Task deleted");
+  let catalogue = await Catalogue.findByIdAndDelete(req.params._id);
+  if (!catalogue) return res.status(400).send("Product not found");
+  return res.status(200).send("Product deleted");
 };
 
-module.exports = { saveTask, listTask, updateTask, deleteTask, saveTaskImg };
+module.exports = { saveProduct: saveProduct, listProduct: listProduct, updateProduct: updateProduct, deleteProduct: deleteProduct, saveProductImg: saveProductImg };

@@ -1,23 +1,30 @@
 const express = require("express");
 const cors = require("cors");
 const { dbConnection } = require("./db/db");
-const Teacher = require("./routes/teacher");
-const Course = require("./routes/course");
-const Student = require("./routes/student");
-const Matter = require("./routes/matter");
-const Board = require("./routes/board");
+const Employee = require("./routes/employee");
+const User = require("./routes/user");
+const Catalogue = require("./routes/catalogue");
 require("dotenv").config();
 
 const app = express();
 
+app.set('view engine', 'ejs');
+app.use(express.urlencoded({extended:true}));
+app.use(express.static('public'));
+
 app.use(express.json());
 app.use(cors());
-app.use("/api/teacher", Teacher);
-app.use("/api/course", Course);
-app.use("/api/student", Student);
-app.use("/api/matter", Matter);
-app.use("/api/board", Board);
+app.use(User);
+app.use(Catalogue);
+
+app.use("/api/employee", Employee);
+app.use("/api/user", User);
+app.use("/api/catalogue", Catalogue);
 app.use("/uploads", express.static("uploads"));
+
+app.get('/', (req,res)=>{
+  res.send('hola mundo')
+} )
 
 app.listen(process.env.PORT, () =>
   console.log("Backend server running on port: " + process.env.PORT)

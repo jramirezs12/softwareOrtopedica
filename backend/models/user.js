@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
 
-const matterSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   name: String,
   email: String,
   password: String,
@@ -10,7 +10,7 @@ const matterSchema = new mongoose.Schema({
   dbStatus: Boolean,
 });
 
-matterSchema.methods.generateJWT = function () {
+userSchema.methods.generateJWT = function () {
   return jwt.sign(
     {
       _id: this._id,
@@ -21,5 +21,5 @@ matterSchema.methods.generateJWT = function () {
   );
 };
 
-const matter = mongoose.model("matter", matterSchema);
-module.exports = matter;
+const user = mongoose.model("user", userSchema);
+module.exports = user;

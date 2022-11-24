@@ -1,28 +1,27 @@
 const bcrypt = require("bcrypt");
-const Teacher = require("../models/teacher");
+const Employee = require("../models/employee");
 const mongoose = require("mongoose");
 
-const registerTeacher = async (req, res) => {
+const registerEmployee = async (req, res) => {
   if (!req.body.name || !req.body.email || !req.body.password)
     return res.status(400).send("Incomplete data");
 
-  let existingTeacher = await Teacher.findOne({ email: req.body.email });
-  if (existingTeacher)
-    return res.status(400).send("The teacher is already registered");
+  let existingEmployee = await Employee.findOne({ email: req.body.email });
+  if (existingEmployee)
+    return res.status(400).send("The Employee is already registered");
 
   let hash = await bcrypt.hash(req.body.password, 10);
 
-  let teacher = new Teacher({
+  let employee = new Employee({
     name: req.body.name,
     email: req.body.email,
-    password: hash,
-    dbStatus: true,
+    password: hash
   });
 
-  let result = await teacher.save();
-  if (!result) return res.status(400).send("Failed to register teacher");
+  let result = await employee.save();
+  if (!result) return res.status(400).send("Failed to register employee");
   try {
-    let jwtToken = teacher.generateJWT();
+    let jwtToken = employee.generateJWT();
     res.status(200).send({ jwtToken });
   } catch (e) {
     return res.status(400).send("Token generation failed");
@@ -30,12 +29,11 @@ const registerTeacher = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  let teacher = await Teacher.findOne({ email: req.body.email });
-  if (!teacher) return res.status(400).send("Wrong email or password");
+  let employee = await Employee.findOne({ email: req.body.email });
+  if (!employee) return res.status(400).send("Wrong email or password");
 
-  if (!teacher.dbStatus) return res.status(400).send("Wrong email or password");
-
-  let hash = await bcrypt.compare(req.body.password, teacher.password);
+  
+  let hash = await bcrypt.compare(req.body.password, employee.password);
   if (!hash) return res.status(400).send("Wrong email or password");
 
   try {
@@ -46,14 +44,14 @@ const login = async (req, res) => {
   }
 };
 
-const listTeacher = async (req, res) => {
-  let teachers = await Teacher.find({ name: new RegExp(req.params["name"], "i") });
-  if (!teachers || teachers.length === 0)
+const listEmployee = async (req, res) => {
+  let employees = await Employee.find({ name: new RegExp(req.params["name"], "i") });
+  if (!employees || employees.length === 0)
     return res.status(400).send("No search results");
-  return res.status(200).send({ teachers });
+  return res.status(200).send({ employees : employees });
 };
 
-const updateTeacher = async (req, res) => {
+const updateEmployee = async (req, res) => {
   if (!req.body._id || !req.body.name || !req.body.email)
     return res.status(400).send("Incomplete data");
 
@@ -62,34 +60,34 @@ const updateTeacher = async (req, res) => {
   if (req.body.password) {
     pass = await bcrypt.hash(req.body.password, 10);
   } else {
-    let teacherFind = await Teacher.findOne({ email: req.body.email });
-    pass = teacherFind.password;
+    let employeeFind = await Employee.findOne({ email: req.body.email });
+    pass = employeeFind.password;
   }
 
-  let teacher = await Teacher.findByIdAndUpdate(req.body._id, {
+  let employee = await Employee.findByIdAndUpdate(req.body._id, {
     name: req.body.name,
     email: req.body.email,
     password: pass,
   });
 
-  if (!teacher) return res.status(400).send("Error editing teacher");
-  return res.status(200).send({ teacher });
+  if (!employee) return res.status(400).send("Error editing employee");
+  return res.status(200).send({ employee: employee });
 };
 
-const deleteTeacher = async (req, res) => {
+const deleteEmployee = async (req, res) => {
   if (!req.body._id) return res.status(400).send("Incomplete data");
 
-  let teacher = await Teacher.findByIdAndUpdate(req.body._id, {
+  let employee = await Employee.findByIdAndUpdate(req.body._id, {
     dbStatus: false,
   });
-  if (!teacher) return res.status(400).send("Error delete user");
+  if (!employee) return res.status(400).send("Error delete user");
   return res.status(200).send({ user });
 };
 
 module.exports = {
-  registerTeacher,
+  registerEmployee: registerEmployee,
   login,
-  listTeacher,
-  updateTeacher,
-  deleteTeacher
+  listEmployee: listEmployee,
+  updateEmployee: updateEmployee,
+  deleteEmployee: deleteEmployee
 };
